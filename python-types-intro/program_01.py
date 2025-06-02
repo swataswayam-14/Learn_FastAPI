@@ -51,3 +51,36 @@ def say_hi_ii(name: str | None = None):
         print(f"Hey {name}")
     else:
         print("Hello World")
+
+
+class Person:
+    def __init__(self, name: str):
+        self.name = name
+
+def get_person_name(one_person: Person):
+    return one_person.name
+
+#pydantic models
+
+from datetime import datetime
+from pydantic import BaseModel
+
+class User(BaseModel):
+    id: int
+    name: str = "John Doe"
+    signup_ts: datetime | None = None
+    friends: list[int] = []
+
+external_data = {
+    "id":"123",
+    "signup_ts":"2017-06-01 12:22",
+    "friends":[1,"2",b"3"],
+}
+
+user = User(**external_data)
+print(user)
+
+from typing import Annotated
+
+def say_hello(name: Annotated[str, "this is just a metadata"]) -> str:
+    return f"Hello {name}"
