@@ -1,22 +1,43 @@
-from fastapi import FastAPI #FastAPI is a class that inherits directly from Starlette
+from fastapi import FastAPI 
+from enum import Enum
 
-app = FastAPI() # app is a FastAPI instance
+class ModelName(str, Enum):
+    alexnet = "alexnet"
+    resnet = "resnet"
+    lenet = "lenet"
+
+app = FastAPI() 
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
-#Path : (endpoint / route)
-# "Path" here refers to the last part of the URL starting from the first /.
-# URL : https://example.com/items/foo, path: "/items/foo"
+@app.get("/items/{item_id}")
+async def read_item(item_id: int): # with type declaration , fast api gives us automatic request parsing
+    return {"item_id": item_id}
+
+# http://127.0.0.1:8000/redoc
+# http://127.0.0.1:8000/docs
 
 
-# http://127.0.0.1:8000/
-# http://127.0.0.1:8000/docs : interactive API doc by Swagger UI
-# http://127.0.0.1:8000/redoc : alternative automatic documentation (provided by ReDoc
-# FastAPI automatically generates a JSON (schema) with the descriptions of all your API : http://127.0.0.1:8000/openapi.json
+@app.get("/users/me")
+async def read_user_me(): 
+    return {"user_id": "the current user"}
 
+@app.get("/users/{user_id}")
+async def read_user(user_id: str):
+    return {"user_id": user_id}
 
-#in OPEN API (HTTP Methods (GET, POST, PUT, DELETE)) are called Operations
+@app.get("/models/{model_name}")
+async def get_model(model_name: ModelName): 
+    if model_name is ModelName.alexnet: 
+        return {"model_name": model_name, "message": "Deep Learning FTW"}
+    if model_name is ModelName.resnet: 
+        return {"model_name": model_name, "message": "LeCNN all the images"}
+    if model_name.value == "lenet": 
+        return {"model_name": model_name, "message": "leCNN all the images"}
+    return {"model_name": model_name, "message": "Have some residuals"}
 
-#@something : is a decorator , tells FastAPI that the function below corresponds to the path / with an operation get/put etc
+@app.get("/files/{file_path:path}")
+async def read_file(file_path: str):
+    return {"file_path": file_path}
