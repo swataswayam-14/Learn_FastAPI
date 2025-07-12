@@ -1,10 +1,17 @@
 from fastapi import FastAPI 
 from enum import Enum
+from pydantic import BaseModel
 
 class ModelName(str, Enum):
     alexnet = "alexnet"
     resnet = "resnet"
     lenet = "lenet"
+
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
 
 app = FastAPI() 
 
@@ -44,6 +51,40 @@ fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"
 @app.get("/items/")
 async def read_item(skip: int = 0, limit: int = 10):
     return fake_items_db[skip: skip+limit]
+
+@app.post("/items/")
+async def create_item(item: Item):
+    item_dict = item.dict()
+    if item.tax is not None: 
+        price_with_tax = item.price + item.tax
+        item_dict.update({ "price with tax": price_with_tax })
+    return item_dict
+
+# @app.put("/items/{item_id}")
+# async def create_item(item: Item, item_id: int):
+#     item_dict = item.dict()
+#     item_dict.update( {"item_id" : item_id} )
+#     if item.tax is not None:  
+#         price_with_tax = item.price + item.tax
+#         item_dict.update({ "price with tax": price_with_tax })
+#     return item_dict
+
+@app.put("/items/{item_id}")
+async def update_item(item: Item, item_id: int, q: str | None = None, short: bool | None = False):
+    item_dict = item.dict()
+    item_dict.update({"item_id": item_id})
+    if short is False:
+        item_dict.update({"long_description": "this is a long description"})
+    if q:
+        item_dict.update({"q":q})
+    return item_dict
+
+# If the parameter is of a singular type (like int, float, str, bool, etc) it will be interpreted as a query parameter.
+# If the parameter is declared to be of the type of a Pydantic model, it will be interpreted as a request body.
+
+
+
+
 
 @app.get("/items/{item_id}") #here item_id is a path parameter and q is a query parameter
 async def read_item(item_id: str, q: str|None = None):
